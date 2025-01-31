@@ -1,0 +1,12 @@
+/* index.css */
+body {
+    background-image: linear-gradient(to top, #d16ba5, #c777b9, #ba83ca, #aa8fd8, #9a9ae1, #8aa7ec, #79b3f4, #69bff8, #52cffe, #41dfff, #46eefa, #5ffbf1);
+    background-size: cover; /* ทำให้ gradient ครอบคลุมทั้งหน้า */
+    background-attachment: fixed; /* พื้นหลังเลื่อนตามหน้าจอ */
+    margin: 0; /* ลบ margin เริ่มต้นของ body */
+    padding: 0; /* ลบ padding เริ่มต้นของ body */
+    font-family: Arial, sans-serif; /* ตั้งค่า font เริ่มต้น */
+}
+.text-black {
+    color: black; /* สีดำสำหรับข้อความ */
+}
