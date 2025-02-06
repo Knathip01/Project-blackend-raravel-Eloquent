@@ -3,54 +3,48 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB; // For DB facade
-use Inertia\Inertia; // For Inertia
+use Inertia\Inertia;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request) // เพิ่มตัวแปร $request เพื่อรับค่าจากคำขอ
+    public function index(Request $request)
     {
-        // รับค่าคำค้นหาจาก input ชื่อ 'search' ที่มาจากหน้าเว็บ
-        $query = $request->input('search');
+        $search = $request->input('search');
+        $products = Product::query()
+            ->when($search, function ($query, $search) {
+                return $query->where('product_name', 'like', "%{$search}%");
+            })
+            ->orderBy('created_at', 'desc') // Order by creation date in descending order
+            ->get();
 
-        // ดึงข้อมูลคำสั่งซื้อจากตาราง orders, order_details, และ products ที่ตรงกับคำค้นหา
-        $orders = DB::table('orders')
-    ->join('order_details', 'orders.OrderID', '=', 'order_details.OrderID')
-    ->join('products', 'order_details.ProductID', '=', 'products.ProductID')
-    ->join('customers', 'orders.CustomerID', '=', 'customers.CustomerID')
-    ->where('orders.OrderID', 'like', '%' . $query . '%')
-    ->orWhere('order_details.ProductID', 'like', '%' . $query . '%')
-    ->orWhere('products.Productname', 'like', '%' . $query . '%')
-    ->orWhere('customers.CustomerName', 'like', '%' . $query . '%')
-    ->orWhere('customers.Phone', 'like', '%' . $query . '%')
-    ->orWhere('customers.Email', 'like', '%' . $query . '%')
-    ->orWhere('order_details.OrderDetailID', '=', $query)
-    ->orWhere('order_details.updated_at', 'like', '%' . $query . '%')
-    ->orWhere('orders.created_at', 'like', '%' . $query . '%')
-    ->orWhere('orders.TotalAmount', 'like', '%' . $query . '%') 
-    ->paginate(20)
-    ->appends(['search' => $query]);
-
-
-        // ส่งข้อมูลคำสั่งซื้อและคำค้นหาไปยังหน้า Inertia 'Order/Index'
+        // Pass data to Inertia component
         return Inertia::render('Product/Index', [
-            'orders' => $orders,
-            'query' => $query,
+            'products' => $products->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'product_name' => $product->product_name,
+                    'price' => $product->price,
+                    'description' => $product->description,
+                    'stock' => $product->stock,
+                    'image' => $product->image,
+                ];
+            }),
+            'search' => $search,
         ]);
     }
-
 
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
-        //
-
+        return Inertia::render('Product/Create');
     }
 
     /**
@@ -58,7 +52,28 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'product_name' => 'required|string|max:255',
+            'price' => 'required|numeric',
+            'description' => 'nullable|string',
+            'stock' => 'required|integer',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('products', 'public');
+        }
+
+        Product::create([
+            'product_name' => $request->product_name,
+            'price' => $request->price,
+            'description' => $request->description,
+            'stock' => $request->stock,
+            'image' => $imagePath,
+        ]);
+
+        return redirect()->route('products.index')->with('success', 'Product created successfully.');
     }
 
     /**
@@ -66,7 +81,9 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
-        //
+        return Inertia::render('Product/Show', [
+            'product' => $product
+        ]);
     }
 
     /**
@@ -74,7 +91,9 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        //
+        return Inertia::render('Product/Edit', [
+            'product' => $product
+        ]);
     }
 
     /**
@@ -82,7 +101,31 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
-        //
+        $request->validate([
+            'product_name' => 'required|string|max:255',
+            'price' => 'required|numeric',
+            'description' => 'nullable|string',
+            'stock' => 'required|integer',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        $imagePath = $product->image;
+        if ($request->hasFile('image')) {
+            if ($product->image) {
+                Storage::delete('public/' . $product->image);
+            }
+            $imagePath = $request->file('image')->store('products', 'public');
+        }
+
+        $product->update([
+            'product_name' => $request->product_name,
+            'price' => $request->price,
+            'description' => $request->description,
+            'stock' => $request->stock,
+            'image' => $imagePath,
+        ]);
+
+        return redirect()->route('products.index')->with('success', 'Product updated successfully.');
     }
 
     /**
@@ -90,6 +133,12 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        //
+        if ($product->image) {
+            Storage::delete('public/' . $product->image);
+        }
+
+        $product->delete();
+
+        return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
     }
 }

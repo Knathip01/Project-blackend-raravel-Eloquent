@@ -1,34 +1,26 @@
 <?php
 
 namespace Database\Factories;
-use App\Models\Order;
-use App\Models\Customer;
+
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Order>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\order>
  */
-class OrderFactory extends Factory
+class orderFactory extends Factory
 {
-    protected $model = Order::class;
-
-    public function definition()
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
     {
         return [
-            'OrderDate' => $this->faker->dateTimeThisCentury(),
-            'CustomerID' => Customer::inRandomOrder()->first()->CustomerID,  // ดึงข้อมูลลูกค้าแบบสุ่ม
-            'TotalAmount' => $this->faker->randomFloat(2, 20, 500),
+            'customer_id' => $this->faker->randomNumber(2),
+            'product_id' => $this->faker->randomNumber(2),
+            'quantity' => $this->faker->randomNumber(2),
+            'total_price' => $this->faker->randomNumber(2),
         ];
-    }
-
-
-    /**
-     * สร้างสถานะที่บ่งบอกว่าออเดอร์นี้เป็นออเดอร์ที่ไม่ได้รับการชำระ
-     */
-    public function unpaid(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'TotalAmount' => 0, // กำหนดยอดรวมเป็น 0 เพื่อบ่งบอกว่าเป็นออเดอร์ที่ไม่ได้ชำระ
-        ]);
     }
 }

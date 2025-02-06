@@ -12,11 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('customers', function (Blueprint $table) {
-            $table->id('CustomerID'); // สร้างคอลัมน์ 'id' เป็น Primary Key (Auto Increment)
-            $table->string('CustomerName', 100);
-            $table->string('Phone', 15);
-            $table->string('Email', 100)->unique();
-            $table->text('Address');
+            $table->id(); // สร้าง id หลัก
+            $table->string('name');
+            $table->string('email')->unique(); // ควรจะ unique
+            $table->string('phone');
+            $table->string('address');
             $table->timestamps();
         });
     }

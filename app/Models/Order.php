@@ -1,33 +1,27 @@
 <?php
 
 namespace App\Models;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 
-class Order extends Model
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+class order extends Model
 {
-    //
     use HasFactory;
-    protected $primaryKey = 'OrderID';
+
     protected $fillable = [
-        'OrderDate',
-        'CustomerID',
-        'TotalAmount',
+        'customer_id', 
+        'product_id', 
+        'quantity', 
+        'total_price'
     ];
 
-    /**
-     * Get the customer that owns the order.
-     */
     public function customer()
     {
-        return $this->belongsTo(Customer::class, 'CustomerID', 'CustomerID');  // ใช้ CustomerID แทน id
+        return $this->belongsTo(Customer::class);
     }
 
-    /**
-     * Get the order details for the order.
-     */
-    public function orderDetails()
+    public function product()
     {
-        return $this->hasMany(OrderDetail::class, 'OrderID', 'OrderID');  // ใช้ OrderID แทน id
+        return $this->belongsTo(Product::class);
     }
 }

@@ -12,13 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('orders', function (Blueprint $table) {
-            $table->id('OrderID');  // ใช้ OrderID เป็น Primary Key
-            $table->unsignedBigInteger('CustomerID');  // เปลี่ยนจาก id เป็น CustomerID
-            $table->dateTime('OrderDate');
-            $table->decimal('TotalAmount', 10, 2);
+            $table->id();
+            $table->unsignedBigInteger('customer_id'); // ใช้ unsignedBigInteger สำหรับ customer_id
+            $table->unsignedBigInteger('product_id'); // ใช้ unsignedBigInteger สำหรับ product_id
+            $table->integer('quantity');
+            $table->decimal('total_price', 10, 2);
             $table->timestamps();
-
-            $table->foreign('CustomerID')->references('CustomerID')->on('customers')->onDelete('cascade');  // สร้าง Foreign Key
+    
+            // สร้าง foreign key
+            $table->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade');
+            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
         });
     }
 
